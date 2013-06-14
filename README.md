@@ -11,6 +11,6 @@ Information on FreeCAD can be found here:
 http://www.freecadweb.org/
 
 
-Dan Falck ddfalck@gmail.com
+Dan Falck 
 June 13, 2013
 

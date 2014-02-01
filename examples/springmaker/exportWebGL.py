@@ -64,6 +64,7 @@ def getCameraData():
         result += str(pos.z) + " );\n"
     else:
         result += "camera.position.set(50,50,50);\n"
+
     result += tab+"camera.lookAt( scene.position );\n"+tab
     # print result
     return result
@@ -145,7 +146,7 @@ def getObjectData(obj,wireframeMode="multimaterial"):
             rgb = "#cccccc"
         result += tab+"var basematerial = new THREE.MeshBasicMaterial( { color: 0x"+str(rgb)[1:]+" } );\n"
         #result += tab+"var basematerial = new THREE.MeshLambertMaterial( { color: 0x"+str(rgb)[1:]+" } );\n"
-        #result += tab+"var basematerial = new THREE.MeshPhongMaterial( { color: 0x"+str(rgb)[1:]+" } );\n"
+        #result += tab+"var basematerial = new THREE.MeshPhongMaterial( { mbient: 0x050505, color: 0xfff000, specular: 0x555555, shininess: 30} );\n"
 
         if wireframeMode == "faceloop":
             # adding the mesh to the scene with a wireframe copy
@@ -249,6 +250,7 @@ def getTemplate():
                 var directionalLight = new THREE.DirectionalLight(0xffffff);
                 directionalLight.position.set(1, 1, 1).normalize();
                 scene.add(directionalLight);
+                //scene.addLight( new THREE.AmbientLight( 0xffffff ) );
                 renderer.render( scene, camera );
                 
                 animate();

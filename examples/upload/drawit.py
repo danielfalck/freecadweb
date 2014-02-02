@@ -20,12 +20,19 @@
 #*                                                                         *
 #***************************************************************************
 
+import sys
+#sys.path.append(FREECADPATH) #set your (FREECADPATH) in your system
+# something like "FREECADPATH='/usr/lib/freecad/lib/' " might work in linux ymmv
+# you can also hard insert the value here, in place of FREECADPATH
 import time
 import zipfile
 from xml.dom import minidom
 import FreeCAD as App
+from FreeCAD import Base
+
 import Part
 import Drawing
+import math
 
 def getActiveObjs(docobj):
     '''Pass a FreeCAD.ActiveDocument object to this function and 
@@ -48,6 +55,48 @@ def getActiveObjs(docobj):
                                     objlist.append(s.attributes['name'].value)
 
     return objlist
+
+def diagcenter(obj  ):
+    '''return the diagonal distance between corners
+       and center of a FreeCAD Compound object-ie something 
+       that is made from several objects'''
+    xmax = obj.OutList[0].Shape.BoundBox.XMax
+    xmin = obj.OutList[0].Shape.BoundBox.XMin
+    ymax = obj.OutList[0].Shape.BoundBox.YMax
+    ymin = obj.OutList[0].Shape.BoundBox.YMin
+    zmax = obj.OutList[0].Shape.BoundBox.ZMax
+    zmin = obj.OutList[0].Shape.BoundBox.ZMin
+
+    for o in obj.OutList:
+        if o.Shape.BoundBox.XMax >= xmax:
+            xmax = o.Shape.BoundBox.XMax 
+        if o.Shape.BoundBox.XMin <= xmin:
+            xmin = o.Shape.BoundBox.XMin
+        if o.Shape.BoundBox.YMax >= ymax:
+            ymax = o.Shape.BoundBox.YMax 
+        if o.Shape.BoundBox.YMin <= ymin:
+            ymin = o.Shape.BoundBox.YMin
+
+        if o.Shape.BoundBox.ZMax >= zmax:
+            zmax = o.Shape.BoundBox.ZMax 
+        if o.Shape.BoundBox.YMin <= zmin:
+            zmin = o.Shape.BoundBox.ZMin
+    v0 = Base.Vector(xmin,ymin,zmin)
+    v1 = Base.Vector(xmax,ymax,zmax)
+    vdiff = v1.sub(v0)
+    bblength = vdiff.Length
+    center = vdiff.multiply(.5)
+    #print xmax,"  ",  ymax,"  ", zmax
+    #print xmin,"  ",  ymin,"  ", zmin
+    #print v0,"  ", v1
+    #print vdiff
+    #print "Diagonal of bounding box = ", bblength
+    #print "Center of bounding box = ", vdiff.multiply(.5)
+
+    return (bblength, center)
+
+
+
 
 def makeView(doc, obj, vname, viewdir, x, y, scale, lwmod, hwmod, rotation, page ,showhidden):
     '''create a drawing view on a given page  '''
@@ -85,25 +134,29 @@ def makedrawing(cname):
     myPage=doc.addObject("Drawing::FeaturePage","Page")
     #myPage.Template = App.getResourceDir()+'Mod/Drawing/Templates/A3_Landscape.svg'
     myPage.Template = "./templates/empty_rectangle.svg"
-    #myPage.Template = 'ANSI_D_Landscape.svg'
-    nviews =4 #number of views- make this 1 for a single iso view
+    nviews =1 #number of views- make this 1 for a single iso view
     lwmod = .35
     scale = 2.750
+    vwidth,vheight = 400, 200.0
+    centerofview = Base.Vector(vwidth,vheight,0).sub(Base.Vector(0,0,0)).multiply(.5)
+    diagonalofview = Base.Vector(vwidth,vheight,0).sub(Base.Vector(0,0,0)).Length
+    diagofobj = diagcenter(obj  )[0]
+    scale = (diagonalofview / diagofobj)*.25
     viewdir = (0,0,1)
-    x = 120
-    y = 170
+    x = centerofview.x
+    y = centerofview.y
     rotation = 0.0
     hwmod = .25
     showhidden = False
     if nviews == 4:
         #4 projected views
-        makeView(doc, obj, 'view1', viewdir, x, y, scale, lwmod, hwmod, rotation, myPage,showhidden)
-        makeView(doc, obj, 'view2', (0,1,0), x, y-90, scale, lwmod, hwmod, 90, myPage,showhidden)
-        makeView(doc, obj, 'view3', (1,0,0), x+150, y, scale, lwmod, hwmod, 180, myPage,showhidden)
-        makeView(doc, obj, 'view4', (.577,.577,.577), x+150, y-90, scale, lwmod, hwmod, 120, myPage,False)
+        makeView(doc, obj, 'view1', viewdir, x*.5, y*.5, scale, lwmod, hwmod, rotation, myPage,showhidden)
+        makeView(doc, obj, 'view2', (0,1,0), x*.5, y+vheight*.25, scale, lwmod, hwmod, 90, myPage,showhidden)
+        makeView(doc, obj, 'view3', (1,0,0), x+vwidth*.05, y+vheight*.25, scale, lwmod, hwmod, 180, myPage,showhidden)
+        makeView(doc, obj, 'view4', (.577,.577,.577), x+vwidth*.03, y*.5, scale, lwmod, hwmod, 120, myPage,False)
     else:
         # make a single Isometric view in the middle of the page
-        makeView(doc, obj, 'view4', (1,1,1), x+50, y-40, scale, lwmod, hwmod, 60, myPage,False)
+        makeView(doc, obj, 'view4', (1,1,1), x*.5, y*.5, scale, lwmod, hwmod, 120, myPage,False)
     myPage.EditableTexts = [unicode('D. FALCK', 'utf-8'),unicode('01/25/14', 'utf-8'),unicode('SLIPTONIC', 'utf-8'),unicode('01/25/14', 'utf-8'),unicode('1:2.5', 'utf-8'),unicode('3.75', 'utf-8'),unicode('F20140125-1', 'utf-8'),unicode('1', 'utf-8'),unicode('ROBOT COUPLER', 'utf-8'),unicode('A COOL PART', 'utf-8'),]
 
     doc.recompute()

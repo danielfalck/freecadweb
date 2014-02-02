@@ -1,3 +1,25 @@
+#***************************************************************************
+#*                                                                         *
+#*   Copyright (c) 2013 Daniel Falck  <ddfalck@gmail.com>                  *
+#*                                                                         *
+#*   This program is free software; you can redistribute it and/or modify  *
+#*   it under the terms of the GNU Lesser General Public License (LGPL)    *
+#*   as published by the Free Software Foundation; either version 2 of     *
+#*   the License, or (at your option) any later version.                   *
+#*   for detail see the LICENCE text file.                                 *
+#*                                                                         *
+#*   This program is distributed in the hope that it will be useful,       *
+#*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+#*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+#*   GNU Library General Public License for more details.                  *
+#*                                                                         *
+#*   You should have received a copy of the GNU Library General Public     *
+#*   License along with this program; if not, write to the Free Software   *
+#*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
+#*   USA                                                                   *
+#*                                                                         *
+#***************************************************************************
+
 import tornado
 import tornado.ioloop
 import tornado.web
@@ -67,7 +89,8 @@ def makedrawing(cname):
 
 #set up the drawing page
     myPage=doc.addObject("Drawing::FeaturePage","Page")
-    myPage.Template = App.getResourceDir()+'Mod/Drawing/Templates/A3_Landscape.svg'
+    #myPage.Template = App.getResourceDir()+'Mod/Drawing/Templates/A3_Landscape.svg'
+    myPage.Template = "./templates/empty_rectangle.svg"
     #myPage.Template = 'ANSI_D_Landscape.svg'
     nviews =4 #number of views- make this 1 for a single iso view
     lwmod = .35

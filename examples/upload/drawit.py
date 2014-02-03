@@ -24,6 +24,7 @@ import sys
 #sys.path.append(FREECADPATH) #set your (FREECADPATH) in your system
 # something like "FREECADPATH='/usr/lib/freecad/lib/' " might work in linux ymmv
 # you can also hard insert the value here, in place of FREECADPATH
+sys.path.append('/usr/lib/freecad/lib/')
 import time
 import zipfile
 from xml.dom import minidom

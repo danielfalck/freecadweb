@@ -54,7 +54,7 @@ class Upload(tornado.web.RequestHandler):
         #os.remove((__UPLOADS__ + cname))
         #os.remove((__UPLOADS__ + zname))
 
-        if (extn == '.fcstd')  or (extn == '.stp'):
+        if extn in ('.fcstd','FCStd'):
             fh = open(__UPLOADS__ + fname, 'w')
             fh.write(fileinfo['body'])
             fh.close()

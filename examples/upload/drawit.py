@@ -23,29 +23,20 @@
 import sys
 #sys.path.append(FREECADPATH) #set your (FREECADPATH) in your system
 # something like "FREECADPATH='/usr/lib/freecad/lib/' " might work in linux ymmv
-# you can also hard insert the value here, in place of FREECADPATH
+# you can also hard code the path, in place of FREECADPATH
 sys.path.append('/usr/lib/freecad/lib/')
-import time
-import zipfile
-import shutil
 import os
-import os.path
-from os.path import basename
-import uuid
-
-from xml.dom import minidom
 import FreeCAD as App
 from FreeCAD import Base
-
 import Part
 import Drawing
-import math
 
-def getActiveObjs(docobj):
-    '''Pass a FreeCAD.ActiveDocument object to this function and 
+import zipfile
+from xml.dom import minidom
+
+def getActiveObjs(filename):
+    '''Pass a FreeCAD file to this function and 
     receive back a list of the visible objects.'''
-    filename = docobj.FileName
-    print filename
     zfile = zipfile.ZipFile(filename)
     guidata = zfile.read('GuiDocument.xml')
     xmlgui =minidom.parseString(guidata)
@@ -60,13 +51,12 @@ def getActiveObjs(docobj):
                             if b.nodeName == 'Bool':
                                 if b.attributes['value'].value == 'true':
                                     objlist.append(s.attributes['name'].value)
-
     return objlist
 
 def diagcenter(obj  ):
     '''return the diagonal distance between corners
-       and center of a FreeCAD Compound object-ie something 
-       that is made from several objects'''
+    and center of a FreeCAD Compound object-ie something 
+    that is made from several objects'''
     xmax = obj.OutList[0].Shape.BoundBox.XMax
     xmin = obj.OutList[0].Shape.BoundBox.XMin
     ymax = obj.OutList[0].Shape.BoundBox.YMax
@@ -83,7 +73,6 @@ def diagcenter(obj  ):
             ymax = o.Shape.BoundBox.YMax 
         if o.Shape.BoundBox.YMin <= ymin:
             ymin = o.Shape.BoundBox.YMin
-
         if o.Shape.BoundBox.ZMax >= zmax:
             zmax = o.Shape.BoundBox.ZMax 
         if o.Shape.BoundBox.YMin <= zmin:
@@ -93,17 +82,7 @@ def diagcenter(obj  ):
     vdiff = v1.sub(v0)
     bblength = vdiff.Length
     center = vdiff.multiply(.5)
-    #print xmax,"  ",  ymax,"  ", zmax
-    #print xmin,"  ",  ymin,"  ", zmin
-    #print v0,"  ", v1
-    #print vdiff
-    #print "Diagonal of bounding box = ", bblength
-    #print "Center of bounding box = ", vdiff.multiply(.5)
-
     return (bblength, center)
-
-
-
 
 def makeView(doc, obj, vname, viewdir, x, y, scale, lwmod, hwmod, rotation, page ,showhidden):
     '''create a drawing view on a given page  '''
@@ -121,53 +100,20 @@ def makeView(doc, obj, vname, viewdir, x, y, scale, lwmod, hwmod, rotation, page
     page.addObject(viewname)
 
 def makedrawing(filename):
-    time.sleep(2.0)
-    extension = os.path.splitext(filename)[1]
-    basename = os.path.splitext(filename)[0]
+    App.open(filename)
+    doc = App.ActiveDocument
+    #get all visible objects in document
+    #hopefully they are solid shapes (shape checking to come)
+    objs = getActiveObjs(filename)
+    #convert unicode names into FreeCAD objects
+    activelist = []
+    for o in objs:
+        activelist.append(doc.getObject(o))
 
-
-    if extension == '.fcstd':
-        App.open(filename)
-        shutil.copyfile(filename,basename+ '.zip')
-        #get all visible objects in document
-        #hopefully they are solid shapes (shape checking to come)
-        doc = App.ActiveDocument
-
-        objs = getActiveObjs(doc)
-        os.remove(filename)
-        os.remove(basename+ '.zip')
-        #convert unicode names into FreeCAD objects
-        activelist = []
-        for o in objs:
-            activelist.append(doc.getObject(o))
-
-        doc.addObject("Part::Compound","Compound")
-        doc.Compound.Links = activelist
-        obj = doc.getObject("Compound")
-
-
-
-    else:
-        base = os.path.basename(os.path.normpath(os.path.splitext(filename)[0]))
-        unique_basename = str(uuid.uuid4())
-        App.newDocument(unique_basename )
-        doc = App.ActiveDocument
-        Part.insert(filename, doc.Label)
-        #Part.show(s)
-        doc.saveAs('uploads/'+doc.Label+'.fcstd')
-        objname = []
-        objname.append(base)
-
-        doc.addObject("Part::Compound","Compound")
-        doc.Compound.Links = doc.getObject(base)
-        doc.recompute()
-        doc.saveAs('uploads/'+doc.Label+'.fcstd')
-
-        obj = doc.getObject("Compound")
-
-        os.remove(filename )
-        #os.remove('uploads/'+doc.Label+'.fcstd')
-
+    doc.addObject("Part::Compound","Compound")
+    doc.Compound.Links = activelist
+    obj = doc.getObject("Compound")
+    os.remove(filename)
 
 #set up the drawing page
     myPage=doc.addObject("Drawing::FeaturePage","Page")
@@ -199,12 +145,9 @@ def makedrawing(filename):
         #makeView(doc, obj, 'view4', (1,1,1), 150, 200, 2.75, lwmod, hwmod, 120, myPage,False)
 
     myPage.EditableTexts = [unicode('D. FALCK', 'utf-8'),unicode('01/25/14', 'utf-8'),unicode('SLIPTONIC', 'utf-8'),unicode('01/25/14', 'utf-8'),unicode('1:2.5', 'utf-8'),unicode('3.75', 'utf-8'),unicode('F20140125-1', 'utf-8'),unicode('1', 'utf-8'),unicode('ROBOT COUPLER', 'utf-8'),unicode('A COOL PART', 'utf-8'),]
-
     doc.recompute()
-
-#return the svg string
+    #return the svg string
     PageFile = open(App.activeDocument().Page.PageResult,'r')
     App.closeDocument(doc.Name)
     return PageFile.read()
-
 

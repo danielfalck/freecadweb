@@ -32,25 +32,20 @@ import Part
 import Drawing
 
 import zipfile
-from xml.dom import minidom
+import xml.etree.ElementTree as ET
 
 def getActiveObjs(filename):
     '''Pass a FreeCAD file to this function and 
     receive back a list of the visible objects.'''
     zfile = zipfile.ZipFile(filename)
-    guidata = zfile.read('GuiDocument.xml')
-    xmlgui =minidom.parseString(guidata)
+    gui=zfile.read('GuiDocument.xml')
+    guitree = ET.fromstring(gui)
     objlist = []
-    itemlist = xmlgui.getElementsByTagName('ViewProvider') 
-    for s in itemlist :
-        for i in s.childNodes:
-            for j in i.childNodes:
-                if j.attributes:
-                    if j.attributes['name'].value == 'Visibility':
-                        for b in j.childNodes:
-                            if b.nodeName == 'Bool':
-                                if b.attributes['value'].value == 'true':
-                                    objlist.append(s.attributes['name'].value)
+    for viewp in guitree.iter(tag = 'ViewProvider'):
+        for elem in viewp.iter(tag='Properties'):
+            for prop in elem.iter(tag='Property'):
+                if prop.attrib.get('name')=='Visibility':
+                    objlist.append( viewp.get('name'))
     return objlist
 
 def diagcenter(obj  ):

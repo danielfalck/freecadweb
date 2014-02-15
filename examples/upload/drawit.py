@@ -60,9 +60,6 @@ def getActiveObjs(filename):
                             filelist.append(part.attrib.get('file'))
     return filelist
 
-def compBrep(breps):
-    print 'test'
-
 def diagcenter(obj  ):
     '''return the diagonal distance between corners
     and center of a FreeCAD Compound object-ie something 

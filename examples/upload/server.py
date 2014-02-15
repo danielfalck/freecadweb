@@ -19,16 +19,12 @@
 #*   USA                                                                   *
 #*                                                                         *
 #***************************************************************************
-
 import tornado
 import tornado.ioloop
 import tornado.web
 import os
-import shutil
-
+import StringIO
 import drawit
-
-__UPLOADS__ = "uploads/"
 
 class Userform(tornado.web.RequestHandler):
     def get(self):
@@ -39,17 +35,14 @@ class Upload(tornado.web.RequestHandler):
         fileinfo = self.request.files['filearg'][0]
         fname = fileinfo['filename']
         extn = os.path.splitext(fname)[1]
-
         if extn in ('.fcstd','FCStd'):
-            fh = open(__UPLOADS__ + fname, 'w')
+            fh = StringIO.StringIO()
             fh.write(fileinfo['body'])
+            self.finish(drawit.makedrawing(fh))
             fh.close()
-            self.finish(drawit.makedrawing(__UPLOADS__ + fname))
-            #self.finish(drawit.makedrawing(fname))
         else:
             self.finish("please upload a FreeCAD *.fcstd file!")
 
-        os.remove(__UPLOADS__ + fname)
 application = tornado.web.Application([
         (r"/", Userform),
         (r"/upload", Upload),

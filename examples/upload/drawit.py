@@ -19,18 +19,15 @@
 #*   USA                                                                   *
 #*                                                                         *
 #***************************************************************************
-
 import sys
 #sys.path.append(FREECADPATH) #set your (FREECADPATH) in your system
 # something like "FREECADPATH='/usr/lib/freecad/lib/' " might work in linux ymmv
 # you can also hard code the path, in place of FREECADPATH
 sys.path.append('/usr/lib/freecad/lib/')
-import os
 import FreeCAD as App
 from FreeCAD import Base
 import Part
 import Drawing
-
 import zipfile
 import xml.etree.ElementTree as ET
 
@@ -61,26 +58,15 @@ def getActiveObjs(filename):
                     if prop.attrib.get('name') == 'Shape':
                         for part in prop.iter(tag='Part'):
                             filelist.append(part.attrib.get('file'))
-
-
     return filelist
 
 def compBrep(breps):
     print 'test'
 
-
 def diagcenter(obj  ):
     '''return the diagonal distance between corners
     and center of a FreeCAD Compound object-ie something 
     that is made from several objects'''
-    #xmax = obj.OutList[0].Shape.BoundBox.XMax
-    #xmin = obj.OutList[0].Shape.BoundBox.XMin
-    #ymax = obj.OutList[0].Shape.BoundBox.YMax
-    #ymin = obj.OutList[0].Shape.BoundBox.YMin
-    #zmax = obj.OutList[0].Shape.BoundBox.ZMax
-    #zmin = obj.OutList[0].Shape.BoundBox.ZMin
-
-
     xmax = obj.Shape.BoundBox.XMax
     xmin = obj.Shape.BoundBox.XMin
     ymax = obj.Shape.BoundBox.YMax
@@ -135,7 +121,6 @@ def getshape(filename):
         exec("shape%d = Part.Shape()" % (activebreps.index(i)))
         exec("shape%d.importBrepFromString(%s)" %(activebreps.index(i),repr(data)))
         partcomp.append(eval("shape%d" % (activebreps.index(i))))
-
     if len(partcomp)>1:
         objs = Part.Compound(partcomp)
     else:

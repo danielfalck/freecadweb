@@ -38,6 +38,7 @@ def getActiveObjs(filename):
     '''Pass a FreeCAD file to this function and 
     receive back a list of the visible objects.'''
     zfile = zipfile.ZipFile(filename)
+    #find out which objects were left visible in the saved file
     gui=zfile.read('GuiDocument.xml')
     guitree = ET.fromstring(gui)
     objlist = []
@@ -45,21 +46,47 @@ def getActiveObjs(filename):
         for elem in viewp.iter(tag='Properties'):
             for prop in elem.iter(tag='Property'):
                 if prop.attrib.get('name')=='Visibility':
-                   for bool in prop.iter(tag='Bool'):
-                       if bool.get('value')=='true':
+                   for state in prop.iter(tag='Bool'):
+                       if state.get('value')=='true':
                             objlist.append( viewp.get('name'))
-    return objlist
+    #return objlist
+    #get the Brep geometry of visible objects.
+    geom=zfile.read('Document.xml')
+    geotree = ET.fromstring(geom)
+    filelist = []
+    for elem in geotree.iter(tag='ObjectData'):
+        for label in elem.iter(tag='Object'):
+            if label.attrib.get('name') in (tuple(objlist)):
+                for prop in label.iter(tag='Property'):
+                    if prop.attrib.get('name') == 'Shape':
+                        for part in prop.iter(tag='Part'):
+                            filelist.append(part.attrib.get('file'))
+
+
+    return filelist
+
+def compBrep(breps):
+    print 'test'
+
 
 def diagcenter(obj  ):
     '''return the diagonal distance between corners
     and center of a FreeCAD Compound object-ie something 
     that is made from several objects'''
-    xmax = obj.OutList[0].Shape.BoundBox.XMax
-    xmin = obj.OutList[0].Shape.BoundBox.XMin
-    ymax = obj.OutList[0].Shape.BoundBox.YMax
-    ymin = obj.OutList[0].Shape.BoundBox.YMin
-    zmax = obj.OutList[0].Shape.BoundBox.ZMax
-    zmin = obj.OutList[0].Shape.BoundBox.ZMin
+    #xmax = obj.OutList[0].Shape.BoundBox.XMax
+    #xmin = obj.OutList[0].Shape.BoundBox.XMin
+    #ymax = obj.OutList[0].Shape.BoundBox.YMax
+    #ymin = obj.OutList[0].Shape.BoundBox.YMin
+    #zmax = obj.OutList[0].Shape.BoundBox.ZMax
+    #zmin = obj.OutList[0].Shape.BoundBox.ZMin
+
+
+    xmax = obj.Shape.BoundBox.XMax
+    xmin = obj.Shape.BoundBox.XMin
+    ymax = obj.Shape.BoundBox.YMax
+    ymin = obj.Shape.BoundBox.YMin
+    zmax = obj.Shape.BoundBox.ZMax
+    zmin = obj.Shape.BoundBox.ZMin
 
     for o in obj.OutList:
         if o.Shape.BoundBox.XMax >= xmax:
@@ -96,21 +123,34 @@ def makeView(doc, obj, vname, viewdir, x, y, scale, lwmod, hwmod, rotation, page
         viewname.ShowHiddenLines = True
     page.addObject(viewname)
 
-def makedrawing(filename):
-    App.open(filename)
-    doc = App.ActiveDocument
+def getshape(filename):
     #get all visible objects in document
     #hopefully they are solid shapes (shape checking to come)
-    objs = getActiveObjs(filename)
-    activelist = []
-    for o in objs:
-        activelist.append(doc.getObject(o))
-    doc.addObject("Part::Compound","Compound")
-    doc.Compound.Links = activelist
-    obj = doc.getObject("Compound")
-    os.remove(filename)
+    activebreps = getActiveObjs(filename)
+    zfile=zipfile.ZipFile(filename)
+    partcomp = [] #list for Part.Compound
+    #pull breps out of file and make make shapes from them
+    for i in activebreps:
+        data=zfile.read(i)
+        exec("shape%d = Part.Shape()" % (activebreps.index(i)))
+        exec("shape%d.importBrepFromString(%s)" %(activebreps.index(i),repr(data)))
+        partcomp.append(eval("shape%d" % (activebreps.index(i))))
 
-#set up the drawing page
+    if len(partcomp)>1:
+        objs = Part.Compound(partcomp)
+    else:
+        objs = partcomp[0]
+    return objs
+
+def makedrawing(filename):
+    App.newDocument()
+    App.setActiveDocument("Unnamed")
+    doc = App.ActiveDocument
+    doc.addObject("Part::Compound","Compound")
+    doc.Compound.Shape = getshape(filename)
+    obj = doc.getObject("Compound")
+
+    #set up the drawing page
     myPage=doc.addObject("Drawing::FeaturePage","Page")
     myPage.Template = "./templates/empty_rectangle.svg"
     nviews =1 #number of views- make this 1 for a single iso view

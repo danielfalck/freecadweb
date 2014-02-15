@@ -39,31 +39,17 @@ class Upload(tornado.web.RequestHandler):
         fileinfo = self.request.files['filearg'][0]
         fname = fileinfo['filename']
         extn = os.path.splitext(fname)[1]
-        #name = os.path.splitext(fname)[0]
-        #cname = name +extn
-        #zname = name+'.zip'
-
-        #if (extn == '.fcstd') or (extn == '.step') or (extn == '.stp'):
-        #    fh = open(__UPLOADS__ + cname, 'w')
-        #    fh.write(fileinfo['body'])
-        #    shutil.copyfile(__UPLOADS__ + cname,__UPLOADS__ + zname)
-        #    fh.close()
-        #else:
-        #    self.finish("please upload a FreeCAD *.fcstd file!")
-        #self.finish(drawit.makedrawing(__UPLOADS__ + cname,extn))
-        #os.remove((__UPLOADS__ + cname))
-        #os.remove((__UPLOADS__ + zname))
 
         if extn in ('.fcstd','FCStd'):
             fh = open(__UPLOADS__ + fname, 'w')
             fh.write(fileinfo['body'])
             fh.close()
             self.finish(drawit.makedrawing(__UPLOADS__ + fname))
-
+            #self.finish(drawit.makedrawing(fname))
         else:
             self.finish("please upload a FreeCAD *.fcstd file!")
 
-
+        os.remove(__UPLOADS__ + fname)
 application = tornado.web.Application([
         (r"/", Userform),
         (r"/upload", Upload),

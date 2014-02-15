@@ -102,11 +102,9 @@ def makedrawing(filename):
     #get all visible objects in document
     #hopefully they are solid shapes (shape checking to come)
     objs = getActiveObjs(filename)
-    #convert unicode names into FreeCAD objects
     activelist = []
     for o in objs:
         activelist.append(doc.getObject(o))
-
     doc.addObject("Part::Compound","Compound")
     doc.Compound.Links = activelist
     obj = doc.getObject("Compound")
@@ -114,7 +112,6 @@ def makedrawing(filename):
 
 #set up the drawing page
     myPage=doc.addObject("Drawing::FeaturePage","Page")
-    #myPage.Template = App.getResourceDir()+'Mod/Drawing/Templates/A3_Landscape.svg'
     myPage.Template = "./templates/empty_rectangle.svg"
     nviews =1 #number of views- make this 1 for a single iso view
     lwmod = .35
@@ -139,9 +136,6 @@ def makedrawing(filename):
     else:
         # make a single Isometric view in the middle of the page
         makeView(doc, obj, 'view4', (1,1,1), x*.5, y*.5, scale, lwmod, hwmod, 120, myPage,False)
-        #makeView(doc, obj, 'view4', (1,1,1), 150, 200, 2.75, lwmod, hwmod, 120, myPage,False)
-
-    myPage.EditableTexts = [unicode('D. FALCK', 'utf-8'),unicode('01/25/14', 'utf-8'),unicode('SLIPTONIC', 'utf-8'),unicode('01/25/14', 'utf-8'),unicode('1:2.5', 'utf-8'),unicode('3.75', 'utf-8'),unicode('F20140125-1', 'utf-8'),unicode('1', 'utf-8'),unicode('ROBOT COUPLER', 'utf-8'),unicode('A COOL PART', 'utf-8'),]
     doc.recompute()
     #return the svg string
     PageFile = open(App.activeDocument().Page.PageResult,'r')

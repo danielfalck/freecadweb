@@ -45,7 +45,9 @@ def getActiveObjs(filename):
         for elem in viewp.iter(tag='Properties'):
             for prop in elem.iter(tag='Property'):
                 if prop.attrib.get('name')=='Visibility':
-                    objlist.append( viewp.get('name'))
+                   for bool in prop.iter(tag='Bool'):
+                       if bool.get('value')=='true':
+                            objlist.append( viewp.get('name'))
     return objlist
 
 def diagcenter(obj  ):

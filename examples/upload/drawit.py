@@ -23,7 +23,7 @@ import sys
 #sys.path.append(FREECADPATH) #set your (FREECADPATH) in your system
 # something like "FREECADPATH='/usr/lib/freecad/lib/' " might work in linux ymmv
 # you can also hard code the path, in place of FREECADPATH
-#sys.path.append('/usr/lib/freecad/lib/')
+sys.path.append('/usr/lib/freecad/lib/')
 import FreeCAD as App
 from FreeCAD import Base
 import Part

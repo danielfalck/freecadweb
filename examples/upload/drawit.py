@@ -23,7 +23,7 @@ import sys
 #sys.path.append(FREECADPATH) #set your (FREECADPATH) in your system
 # something like "FREECADPATH='/usr/lib/freecad/lib/' " might work in linux ymmv
 # you can also hard code the path, in place of FREECADPATH
-sys.path.append('/usr/lib/freecad/lib/')
+#sys.path.append('/usr/lib/freecad/lib/')
 import FreeCAD as App
 from FreeCAD import Base
 import Part
@@ -124,14 +124,8 @@ def getshape(filename):
         objs = partcomp[0]
     return objs
 
-def makedrawing(filename):
-    App.newDocument()
-    App.setActiveDocument("Unnamed")
-    doc = App.ActiveDocument
-    doc.addObject("Part::Compound","Compound")
-    doc.Compound.Shape = getshape(filename)
-    obj = doc.getObject("Compound")
-
+def makedrawing(doc,obj):
+    
     #set up the drawing page
     myPage=doc.addObject("Drawing::FeaturePage","Page")
     myPage.Template = "./templates/empty_rectangle.svg"
@@ -163,4 +157,28 @@ def makedrawing(filename):
     PageFile = open(App.activeDocument().Page.PageResult,'r')
     App.closeDocument(doc.Name)
     return PageFile.read()
+
+def makefcdoc(filename):
+    App.newDocument()
+    App.setActiveDocument("Unnamed")
+    doc = App.ActiveDocument
+    doc.addObject("Part::Compound","Compound")
+    doc.Compound.Shape = getshape(filename)
+    obj = doc.getObject("Compound")
+    return makedrawing(doc,obj)
+
+def stepreader(name):
+    import os
+    import tempfile
+    tmpdir = tempfile.gettempdir()
+    path = os.path.join(tmpdir,name)
+    step = Part.Shape()
+    step.read(path)
+    App.newDocument()
+    App.setActiveDocument("Unnamed")
+    doc = App.ActiveDocument
+    doc.addObject("Part::Compound", "STEP")
+    doc.STEP.Shape = step
+    obj = doc.getObject("STEP")
+    return makedrawing(doc,obj)
 

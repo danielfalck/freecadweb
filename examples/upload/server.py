@@ -35,13 +35,23 @@ class Upload(tornado.web.RequestHandler):
         fileinfo = self.request.files['filearg'][0]
         fname = fileinfo['filename']
         extn = os.path.splitext(fname)[1]
-        if extn in ('.fcstd','FCStd'):
+        if extn in ('.fcstd','.FCStd','.FCSTD', '.fcstd1','.FCSTD1'):
             fh = StringIO.StringIO()
             fh.write(fileinfo['body'])
-            self.finish(drawit.makedrawing(fh))
+            self.finish(drawit.makefcdoc(fh))
             fh.close()
+        elif extn in ('.stp','.step','.STP', '.STEP'):
+            import tempfile
+            # sorry but we need to make a tmp file to deal
+            # with *step files
+            tmpdir = tempfile.gettempdir()
+            path = os.path.join(tmpdir, fname)
+            f = open(path, 'w')
+            f.write(fileinfo['body'])
+            f.close()
+            self.finish(drawit.stepreader(path))
         else:
-            self.finish("please upload a FreeCAD *.fcstd file!")
+            self.finish("please upload a FreeCAD *.fcstd or STEP *.stp file!")
 
 application = tornado.web.Application([
         (r"/", Userform),

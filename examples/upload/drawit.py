@@ -39,11 +39,11 @@ def getActiveObjs(filename):
     gui=zfile.read('GuiDocument.xml')
     guitree = ET.fromstring(gui)
     objlist = []
-    for viewp in guitree.getitorator(tag = 'ViewProvider'):
-        for elem in viewp.getitorator(tag='Properties'):
-            for prop in elem.getitorator(tag='Property'):
+    for viewp in guitree.getiterator(tag = 'ViewProvider'):
+        for elem in viewp.getiterator(tag='Properties'):
+            for prop in elem.getiterator(tag='Property'):
                 if prop.attrib.get('name')=='Visibility':
-                   for state in prop.getitorator(tag='Bool'):
+                   for state in prop.getiterator(tag='Bool'):
                        if state.get('value')=='true':
                             objlist.append( viewp.get('name'))
     #return objlist
@@ -51,12 +51,12 @@ def getActiveObjs(filename):
     geom=zfile.read('Document.xml')
     geotree = ET.fromstring(geom)
     filelist = []
-    for elem in geotree.getitorator(tag='ObjectData'):
-        for label in elem.getitorator(tag='Object'):
+    for elem in geotree.getiterator(tag='ObjectData'):
+        for label in elem.getiterator(tag='Object'):
             if label.attrib.get('name') in (tuple(objlist)):
-                for prop in label.getitorator(tag='Property'):
+                for prop in label.getiterator(tag='Property'):
                     if prop.attrib.get('name') == 'Shape':
-                        for part in prop.getitorator(tag='Part'):
+                        for part in prop.getiterator(tag='Part'):
                             filelist.append(part.attrib.get('file'))
     return filelist
 

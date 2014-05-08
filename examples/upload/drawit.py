@@ -23,7 +23,7 @@ import sys
 #sys.path.append(FREECADPATH) #set your (FREECADPATH) in your system
 # something like "FREECADPATH='/usr/lib/freecad/lib/' " might work in linux ymmv
 # you can also hard code the path, in place of FREECADPATH
-sys.path.append('/usr/lib/freecad/lib/')
+sys.path.append('/usr/local/lib/')
 import FreeCAD as App
 from FreeCAD import Base
 import Part
@@ -39,11 +39,11 @@ def getActiveObjs(filename):
     gui=zfile.read('GuiDocument.xml')
     guitree = ET.fromstring(gui)
     objlist = []
-    for viewp in guitree.iter(tag = 'ViewProvider'):
-        for elem in viewp.iter(tag='Properties'):
-            for prop in elem.iter(tag='Property'):
+    for viewp in guitree.getitorator(tag = 'ViewProvider'):
+        for elem in viewp.getitorator(tag='Properties'):
+            for prop in elem.getitorator(tag='Property'):
                 if prop.attrib.get('name')=='Visibility':
-                   for state in prop.iter(tag='Bool'):
+                   for state in prop.getitorator(tag='Bool'):
                        if state.get('value')=='true':
                             objlist.append( viewp.get('name'))
     #return objlist
@@ -51,12 +51,12 @@ def getActiveObjs(filename):
     geom=zfile.read('Document.xml')
     geotree = ET.fromstring(geom)
     filelist = []
-    for elem in geotree.iter(tag='ObjectData'):
-        for label in elem.iter(tag='Object'):
+    for elem in geotree.getitorator(tag='ObjectData'):
+        for label in elem.getitorator(tag='Object'):
             if label.attrib.get('name') in (tuple(objlist)):
-                for prop in label.iter(tag='Property'):
+                for prop in label.getitorator(tag='Property'):
                     if prop.attrib.get('name') == 'Shape':
-                        for part in prop.iter(tag='Part'):
+                        for part in prop.getitorator(tag='Part'):
                             filelist.append(part.attrib.get('file'))
     return filelist
 

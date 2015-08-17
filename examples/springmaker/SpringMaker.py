@@ -22,7 +22,11 @@
 #***************************************************************************
 
 '''functions for drawing a spring for a web page '''
-
+import sys
+#sys.path.append(FREECADPATH) #set your (FREECADPATH) in your system
+# something like "FREECADPATH='/usr/lib/freecad/lib/' " might work in linux ymmv
+# you can also hard code the path, in place of FREECADPATH
+sys.path.append('/usr/local/lib/')
 import FreeCAD, Part 
 import exportWebGL
 
@@ -36,9 +40,9 @@ def drawsolid(d,l,p,wd):
     c.Radius=barradius
     p=c.toShape()
     section = Part.Wire([p])
-    makeSolid=1 #change to 1 to make a solid
-    isFrenet=1
-    myspring=Part.Wire(myhelix).makePipeShell([section],makeSolid,isFrenet)
+    makeSolid=True
+    isFrenet=True
+    myspring=Part.Wire(myhelix).makePipeShell([section],makeSolid,True)
     
     solidlist= [myspring]
     result = ''
